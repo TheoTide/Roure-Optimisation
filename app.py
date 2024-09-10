@@ -113,7 +113,7 @@ if page == "Introduction":
 
     # Adding an image to the introduction page
     # st.image("image.jpg", caption="Optimizing Delivery Routes", use_column_width=True)
-    st.image("image.webp", caption="Optimizing Delivery Routes")
+    # st.image("image.webp", caption="Optimizing Delivery Routes")
 
 
     st.write("""
