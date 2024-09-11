@@ -155,7 +155,7 @@ def simulate_route(route, locations, speed=5):
         end_lat, end_lon = locations[next_index]
 
         # Simulate moving from start to end by interpolating between points
-        num_steps = 20  # Number of steps for the animation
+        num_steps = 2  # Number of steps for the animation
         lat_steps = np.linspace(start_lat, end_lat, num_steps)
         lon_steps = np.linspace(start_lon, end_lon, num_steps)
 
