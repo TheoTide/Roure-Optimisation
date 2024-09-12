@@ -181,7 +181,7 @@ else:
         st.dataframe(df)
 
         # setting marker size
-        df['MarkerSize'] = 5
+        df['MarkerSize'] = 0.9
 
         # Display the interactive map for generated locations
         fig = px.scatter_mapbox(df, lat="Latitude", lon="Longitude", hover_data=["Latitude", "Longitude"], size='MarkerSize', zoom=8, color_discrete_sequence=['red'], title="Generated Locations")
