@@ -4,6 +4,7 @@ import time
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import streamlit as st
+import pandas as pd
  
 #  Haversine function to calculate distance between two points
 def haversine(lat1, lon1, lat2, lon2):
@@ -102,116 +103,182 @@ def convert_distance(distance_km, unit):
         return distance_km * 0.621371  # Convert km to miles
     return distance_km
 
-# Simulation function to simulate the optimized route with markers at each delivery point
-def simulate_route(route, locations, speed=5):
-    """Simulate the movement of the vehicle along the delivery route, with markers at each delivery point."""
-    fig = go.Figure()
+# # Simulation function to simulate the optimized route with markers at each delivery point
+# def simulate_route(route, locations, speed=5):
+#     """Simulate the movement of the vehicle along the delivery route, with markers at each delivery point."""
+#     fig = go.Figure()
     
-    # Initialize the first marker (start point)
-    current_lat, current_lon = locations[route[0]]
+#     # Plot all delivery points as static markers
+#     for idx, location_index in enumerate(route):
+#         lat, lon = locations[location_index]
+#         fig.add_trace(go.Scattermapbox(
+#             lat=[lat],
+#             lon=[lon],
+#             mode='markers+text',
+#             marker=dict(size=10, color='orange', symbol='circle'),
+#             text=[f'Delivery {idx+1}'],
+#             textposition='top right'
+#         ))
 
-    # Plot the starting point (Start marker)
-    fig.add_trace(go.Scattermapbox(
-        lat=[current_lat],
-        lon=[current_lon],
-        mode='markers+text',
-        marker=dict(size=12, color='green', symbol='star'),
-        text=['Start'],
-        textposition='top right'
+#     # Plot the full route as a static line
+#     route_lats = [locations[idx][0] for idx in route]
+#     route_lons = [locations[idx][1] for idx in route]
+#     fig.add_trace(go.Scattermapbox(
+#         lat=route_lats,
+#         lon=route_lons,
+#         mode='lines',
+#         line=dict(width=2, color='blue'),
+#     ))
+
+#     # Configure the map layout (static parts)
+#     fig.update_layout(
+#         mapbox=dict(
+#             style="open-street-map",
+#             center=dict(lat=np.mean(locations[:, 0]), lon=np.mean(locations[:, 1])),
+#             zoom=8,
+#         ),
+#         margin=dict(t=0, b=0, l=0, r=0)
+#     )
+
+#     # Display the initial figure with static elements
+#     map_plot = st.plotly_chart(fig, use_container_width=True)
+
+#     # Add a dynamic marker for vehicle movement
+#     vehicle_marker = go.Scattermapbox(
+#         lat=[locations[route[0]][0]],
+#         lon=[locations[route[0]][1]],
+#         mode='markers',
+#         marker=dict(size=12, color='blue', symbol='circle'),
+#         text=['Start'],
+#         textposition='top right'
+#     )
+#     fig.add_trace(vehicle_marker)
+
+#     # Iterate through the route to simulate vehicle movement
+#     for i in range(1, len(route)):
+#         # Get the current and next locations
+#         current_index = route[i - 1]
+#         next_index = route[i]
+        
+#         start_lat, start_lon = locations[current_index]
+#         end_lat, end_lon = locations[next_index]
+
+#         # Simulate moving from start to end by interpolating between points
+#         num_steps = 3  # Number of steps for the animation
+#         lat_steps = np.linspace(start_lat, end_lat, num_steps)
+#         lon_steps = np.linspace(start_lon, end_lon, num_steps)
+
+#         # Simulate movement by updating the vehicle marker's position at each step
+#         for j in range(num_steps):
+#             # Update the vehicle marker with the new position
+#             vehicle_marker.lat = [lat_steps[j]]
+#             vehicle_marker.lon = [lon_steps[j]]
+
+#             # Update the map plot with the new vehicle marker position
+#             map_plot.plotly_chart(fig, use_container_width=True)
+
+#             # Pause between steps to create the animation effect (speed control)
+#             time.sleep(0.1 / speed)
+
+#     # After the loop, update the final location of the vehicle marker
+#     vehicle_marker.lat = [locations[route[-1]][0]]
+#     vehicle_marker.lon = [locations[route[-1]][1]]
+#     vehicle_marker.marker = dict(size=12, color='red', symbol='square')
+#     vehicle_marker.text = ['End']
+
+#     # Update the map with the final marker position
+#     map_plot.plotly_chart(fig, use_container_width=True)
+
+
+
+def simulate_route(optimized_route, locations, speed=500):
+    """
+    Simulates a route on a map and visualizes it using Plotly.
+
+    Parameters:
+    optimized_route (list): A list of indices representing the optimized route.
+    locations (numpy array): An array of [latitude, longitude] coordinates.
+    speed (int, optional): The duration of each frame in milliseconds. Default is 500ms.
+    """
+    speed = (10 - speed) * 100
+    # Create a DataFrame with city names and coordinates
+    city_route = [f"Location {i}" for i in optimized_route]
+    lon_lat = locations[optimized_route]
+
+    # Creating DataFrame
+    df = pd.DataFrame({
+        'city': city_route,
+        'lon': lon_lat[:, 1],
+        'lat': lon_lat[:, 0]
+    })
+
+    # Copy the existing DataFrame
+    data = df.copy()
+
+    # Add 'id' column for reference
+    data['id'] = range(len(data))
+
+    # Add 'color' column
+    data['color'] = ""
+
+    # Setting 'red' color for the first row (index 0) and 'black' for others
+    data.loc[data['id'] == 0, 'color'] = 'red'
+    data.loc[data['id'] != 0, 'color'] = 'black'
+
+    # Get the start location
+    start = data[data["id"] == 0][["lon", "lat"]].values[0]
+
+    # Animated map visualization
+    fig_2 = go.Figure()
+
+    # Plot the entire route as a background trace (non-animated)
+    fig_2.add_trace(go.Scattermapbox(
+        lon=data['lon'],
+        lat=data['lat'],
+        mode='lines+markers',
+        marker=dict(size=15, color='black'),
+        line=dict(width=2, color='gray'),
+        name='Route'
     ))
 
-    # Plot all delivery points as static markers
-    for idx, location_index in enumerate(route):
-        lat, lon = locations[location_index]
-        fig.add_trace(go.Scattermapbox(
-            lat=[lat],
-            lon=[lon],
-            mode='markers+text',
-            marker=dict(size=10, color='orange', symbol='circle'),
-            text=[f'Delivery {idx+1}'],
-            textposition='top right'
+    # Create frames for animation (one point at a time)
+    frames = []
+    for i in range(len(data)):
+        frames.append(go.Frame(
+            data=[go.Scattermapbox(
+                lon=data['lon'][:i+1],  # Plot points up to the current frame
+                lat=data['lat'][:i+1],
+                mode='lines+markers',
+                marker=dict(size=15, color='red'),
+                line=dict(width=3, color='red'),
+                name='Moving'
+            )],
+            name=f'frame{i}'
         ))
 
-    # Configure the map layout (static parts)
-    fig.update_layout(
+    # Add frames to the figure
+    fig_2.frames = frames
+
+    # Set up the map style, zoom, and center
+    fig_2.update_layout(
         mapbox=dict(
             style="open-street-map",
-            center=dict(lat=np.mean(locations[:, 0]), lon=np.mean(locations[:, 1])),
-            zoom=8,
+            zoom=9,
+            center=dict(lat=start[1], lon=start[0])
         ),
-        margin=dict(t=0, b=0, l=0, r=0)
-    )
+        width=1000,  # Width of the map
+        height=750,  # Height of the map
+        margin={"r":0,"t":0,"l":0,"b":0},
+        updatemenus=[dict(type="buttons",
+                          showactive=False,
+                          buttons=[dict(label="Play",
+                                        method="animate",
+                                        args=[None, {"frame": {"duration": speed, "redraw": True},
+                                                     "fromcurrent": True, "mode": "immediate"}]),
+                                   dict(label="Pause",
+                                        method="animate",
+                                        args=[[None], {"frame": {"duration": 0, "redraw": False},
+                                                       "mode": "immediate"}])])])
 
-    # Display the initial figure
-    map_plot = st.plotly_chart(fig, use_container_width=True)
-
-    # Iterate through the route to simulate vehicle movement
-    for i in range(1, len(route)):
-        # Get the current and next locations
-        current_index = route[i - 1]
-        next_index = route[i]
-        
-        start_lat, start_lon = locations[current_index]
-        end_lat, end_lon = locations[next_index]
-
-        # Simulate moving from start to end by interpolating between points
-        num_steps = 3  # Number of steps for the animation
-        lat_steps = np.linspace(start_lat, end_lat, num_steps)
-        lon_steps = np.linspace(start_lon, end_lon, num_steps)
-
-        # Simulate movement by updating the marker's position at each step
-        for j in range(num_steps):
-            fig.data = []  # Clear previous markers
-
-            # Plot the current position of the moving vehicle
-            fig.add_trace(go.Scattermapbox(
-                lat=[lat_steps[j]],
-                lon=[lon_steps[j]],
-                mode='markers',
-                marker=dict(size=12, color='blue', symbol='circle'),
-                text=[f'Location {i+1}'],
-                textposition='top right'
-            ))
-
-            # Plot the static delivery points again to keep them visible
-            for idx, location_index in enumerate(route):
-                lat, lon = locations[location_index]
-                fig.add_trace(go.Scattermapbox(
-                    lat=[lat],
-                    lon=[lon],
-                    mode='markers+text',
-                    marker=dict(size=10, color='orange', symbol='circle'),
-                    text=[f'Delivery {idx+1}'],
-                    textposition='top right'
-                ))
-
-            # Plot the line representing the full route
-            route_lats = [locations[idx][0] for idx in route[:i+1]]
-            route_lons = [locations[idx][1] for idx in route[:i+1]]
-            
-            fig.add_trace(go.Scattermapbox(
-                lat=route_lats + [lat_steps[j]],
-                lon=route_lons + [lon_steps[j]],
-                mode='lines',
-                line=dict(width=2, color='blue'),
-            ))
-
-            # Update the map plot with the new marker position
-            map_plot.plotly_chart(fig, use_container_width=True)
-
-            # Pause between steps to create the animation effect (speed control)
-            time.sleep(0.1 / speed)
-
-    # After the loop, mark the final location (End marker)
-    end_lat, end_lon = locations[route[-1]]
-    fig.add_trace(go.Scattermapbox(
-        lat=[end_lat],
-        lon=[end_lon],
-        mode='markers+text',
-        marker=dict(size=12, color='red', symbol='square'),
-        text=['End'],
-        textposition='top right'
-    ))
-
-    # Display the final figure with all delivery points and the end point
-    map_plot.plotly_chart(fig, use_container_width=True)
+    # Render the animated map figure in Streamlit
+    st.plotly_chart(fig_2)
