@@ -267,7 +267,7 @@ def simulate_route(optimized_route, locations, speed=500):
             center=dict(lat=start[1], lon=start[0])
         ),
         width=1000,  # Width of the map
-        height=750,  # Height of the map
+        height=650,  # Height of the map
         margin={"r":0,"t":0,"l":0,"b":0},
         updatemenus=[dict(type="buttons",
                           showactive=False,
