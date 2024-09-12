@@ -180,11 +180,10 @@ else:
         st.write("Generated Delivery Locations:")
         st.dataframe(df)
 
-        # setting marker size
-        df['MarkerSize'] = 0.9
+
 
         # Display the interactive map for generated locations
-        fig = px.scatter_mapbox(df, lat="Latitude", lon="Longitude", hover_data=["Latitude", "Longitude"], size='MarkerSize', zoom=8, color_discrete_sequence=['red'], title="Generated Locations")
+        fig = px.scatter_mapbox(df, lat="Latitude", lon="Longitude", hover_data=["Latitude", "Longitude"], zoom=8, color_discrete_sequence=['red'], title="Generated Locations")
         fig.update_layout(mapbox_style='open-street-map', margin=dict(t=0, b=0, l=0, r=0))
         st.plotly_chart(fig)
 
