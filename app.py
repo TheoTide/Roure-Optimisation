@@ -113,7 +113,7 @@ if page == "Introduction":
 
     # Adding an image to the introduction page
     # st.image("image.jpg", caption="Optimizing Delivery Routes", use_column_width=True)
-    # st.image("image.webp", caption="Optimizing Delivery Routes")
+    st.image("image.webp", caption="Optimizing Delivery Routes")
 
 
     st.write("""
@@ -180,8 +180,11 @@ else:
         st.write("Generated Delivery Locations:")
         st.dataframe(df)
 
+        # setting marker size
+        df['MarkerSize'] = 5
+
         # Display the interactive map for generated locations
-        fig = px.scatter_mapbox(df, lat="Latitude", lon="Longitude", hover_data=["Latitude", "Longitude"], zoom=8, color_discrete_sequence=['red'], title="Generated Locations")
+        fig = px.scatter_mapbox(df, lat="Latitude", lon="Longitude", hover_data=["Latitude", "Longitude"], size='MarkerSize', zoom=8, color_discrete_sequence=['red'], title="Generated Locations")
         fig.update_layout(mapbox_style='open-street-map', margin=dict(t=0, b=0, l=0, r=0))
         st.plotly_chart(fig)
 
@@ -233,7 +236,8 @@ else:
 
             # Display the text in Streamlit
             st.write(full_text)
-
+            
         else:
             st.warning("Please generate locations first.")
+
 
